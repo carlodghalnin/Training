@@ -1,4 +1,4 @@
 # Training
-Python training material.
+Python and SQL training material.
 
 NPower Canada exercises
