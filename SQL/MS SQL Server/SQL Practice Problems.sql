@@ -12,7 +12,7 @@ SELECT FirstName, LastName,
 
 /*13. In the OrderDetails table, we have the fields
 UnitPrice and Quantity. Create a new field,
-TotalPrice, that multiplies these two together. We’ll
+TotalPrice, that multiplies these two together. Weâ€™ll
 ignore the Discount field for now.
 In addition, show the OrderID, ProductID, UnitPrice,
 and Quantity. Order by OrderID and ProductID.*/
@@ -21,7 +21,7 @@ SELECT OrderID, ProductID, UnitPrice, Quantity,
 	FROM OrderDetails ORDER BY OrderID, ProductID;
 
 /*14. How many customers do we have in the Customers
-table? Show one value only, and don’t rely on getting
+table? Show one value only, and donâ€™t rely on getting
 the recordcount at the end of a resultset.*/
 SELECT COUNT(CustomerID) AS TotalCustomers FROM Customers;
 
@@ -41,7 +41,7 @@ SELECT ContactTitle, COUNT(ContactTitle)
 	FROM Customers GROUP BY ContactTitle
 	ORDER BY TotalContactTitle DESC;
 
-/*18. We’d like to show, for each product, the associated
+/*18. Weâ€™d like to show, for each product, the associated
 Supplier. Show the ProductID, ProductName, and the
 CompanyName of the Supplier. Sort by ProductID.*/
 SELECT P.ProductID, P.ProductName, S.CompanyName
