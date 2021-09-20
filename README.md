@@ -1,4 +1,2 @@
 # Training
-Python and SQL training material.
-
-NPower Canada exercises
+Python, SQL, and other IT training materials sponsored by NPower Canada.
