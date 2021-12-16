@@ -214,11 +214,44 @@ SELECT T.EmployeeIDT, E.LastName,
 /*48. Group customers by 2016 orders: 0 to 1,000,
 1,000 to 5,000, 5,000 to 10,000, and over 10,000.
 Order by customer ID.*/
-SELECT C.CustomerID, C.CompanyName,
+WITH CustOrders (CustID, Company, Total) AS
+	(SELECT C.CustomerID, C.CompanyName,
 	SUM(D.UnitPrice * D.Quantity) AS TotalOrders 
 	FROM Customers C
 	JOIN Orders O ON C.CustomerID = O.CustomerID
 	JOIN OrderDetails D ON O.OrderID = D.OrderID
 	WHERE CAST(O.OrderDate AS DATE) LIKE '2016%'
-	GROUP BY C.CustomerID, C.CompanyName
-	ORDER BY C.CustomerID;
+	GROUP BY C.CustomerID, C.CompanyName)
+SELECT *, (CASE 
+	WHEN Total < 1000 THEN 'Low' 
+	WHEN Total >= 1000 AND Total < 5000 THEN 'Medium'
+	WHEN Total >= 5000 AND Total < 10000 THEN 'High'
+	ELSE 'Very High' END) AS Level
+	FROM CustOrders ORDER BY CustID;
+
+/*49. One of the classifications is NULL. Fix it.
+
+Already fixed by proper setting of boundaries in in #48.*/
+
+/*50. Use #49 to show the groupings, their percentages,
+and sort by group total in descending order.*/
+WITH CustOrders (CustID, Company, Total) AS
+	(SELECT C.CustomerID, C.CompanyName,
+	SUM(D.UnitPrice * D.Quantity) AS TotalOrders 
+	FROM Customers C
+	JOIN Orders O ON C.CustomerID = O.CustomerID
+	JOIN OrderDetails D ON O.OrderID = D.OrderID
+	WHERE CAST(O.OrderDate AS DATE) LIKE '2016%'
+	GROUP BY C.CustomerID, C.CompanyName),
+Groupings (Level) AS (SELECT (CASE 
+	WHEN Total < 1000 THEN 'Low' 
+	WHEN Total >= 1000 AND Total < 5000 THEN 'Medium'
+	WHEN Total >= 5000 AND Total < 10000 THEN 'High'
+	ELSE 'Very High' END) FROM CustOrders)
+SELECT Level, COUNT(*) AS LevelCount, 
+	COUNT(*)/CAST(SUM(COUNT(*)) OVER () AS DECIMAL) 
+	AS LevelPercent FROM Groupings  GROUP BY LEVEL
+	ORDER BY LevelCount DESC;
+
+/*51.*/
+SELECT * FROM CustomerGroupThresholds
