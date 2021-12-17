@@ -253,5 +253,72 @@ SELECT Level, COUNT(*) AS LevelCount,
 	AS LevelPercent FROM Groupings  GROUP BY LEVEL
 	ORDER BY LevelCount DESC;
 
-/*51.*/
-SELECT * FROM CustomerGroupThresholds
+--51. Repeat #49 using the table CustomerGroupThresholds
+WITH CustOrders (CustID, Company, Total) AS
+	(SELECT C.CustomerID, C.CompanyName,
+	SUM(D.UnitPrice * D.Quantity) AS TotalOrders 
+	FROM Customers C
+	JOIN Orders O ON C.CustomerID = O.CustomerID
+	JOIN OrderDetails D ON O.OrderID = D.OrderID
+	WHERE CAST(O.OrderDate AS DATE) LIKE '2016%'
+	GROUP BY C.CustomerID, C.CompanyName)
+SELECT C.CustID, C.Company, C.Total, T.CustomerGroupName 
+	FROM CustOrders C JOIN 
+	CustomerGroupThresholds T ON 
+	C.Total > T.RangeBottom AND C.Total < T.RangeTop 
+	ORDER BY CustID;
+
+/*52. Get a list of all countries that are bases for 
+suppliers or customers.*/
+SELECT DISTINCT Country FROM Customers
+UNION
+SELECT DISTINCT Country FROM Suppliers;
+
+--53. Distinguish the list in #52 by supplier or country.
+WITH S (SupplierCountry) AS
+	(SELECT DISTINCT Country FROM Suppliers),
+	C (CustomerCountry) AS
+	(SELECT DISTINCT Country FROM Customers)
+SELECT * FROM S FULL JOIN C 
+	ON SupplierCountry = CustomerCountry;
+
+--54. Do #52 listing the number of suppliers and customers.
+WITH S (Country, NumberSuppliers) AS
+	(SELECT Country, COUNT(Country) FROM Suppliers 
+	GROUP BY Country),
+	C (Country, NumberCustomers) AS
+	(SELECT Country, COUNT(Country) FROM Customers 
+	GROUP BY Country)
+SELECT ISNULL(S.Country, C.Country) AS Country, 
+	ISNULL(NumberSuppliers, 0) AS NumberSuppliers,
+	ISNULL(NumberCustomers, 0) AS NumberCustomers
+	FROM S FULL JOIN C ON S.Country = C.Country;
+
+--55. Get the first chronological order for each country.
+WITH CountryOrders(ShipCountry,CustomerID, OrderID, 
+	OrderDate, OrderRank) AS
+	(SELECT ShipCountry,CustomerID, OrderID, OrderDate,
+	ROW_NUMBER() OVER(PARTITION BY ShipCountry
+	ORDER BY OrderDate) FROM Orders)
+SELECT ShipCountry,CustomerID, OrderID, OrderDate 
+	FROM CountryOrders WHERE OrderRank = 1 
+	ORDER BY ShipCountry;
+
+/*56. Show customers with more than 1 order in a 5-day
+period. Do not use window functions.*/
+SELECT Pr.CustomerID, Pr.OrderID AS PrevOrder,
+	Pr.OrderDate AS PrevDate, Nx.OrderID AS NextOrder,
+	Nx.OrderDate AS NextDate FROM Orders Pr 
+	JOIN Orders Nx ON Pr.CustomerID = Nx.CustomerID 
+	WHERE Pr.OrderDate < Nx.OrderDate AND 
+	DATEDIFF(DAY, Pr.OrderDate, Nx.OrderDate) <= 5 
+	ORDER BY Pr.CustomerID, Pr.OrderID;
+
+--57. Do #56 using window functions.
+WITH Nx (CustomerID, OrderDate, NextOrderDate) AS
+	(SELECT CustomerID, OrderDate, LEAD(OrderDate,1) OVER 
+	(PARTITION BY CustomerID ORDER BY CustomerID, OrderDate)
+	FROM Orders) 
+SELECT * FROM Nx
+	WHERE DATEDIFF(DAY, OrderDate, NextOrderDate) <= 5 
+	ORDER BY CustomerID, OrderDate;
