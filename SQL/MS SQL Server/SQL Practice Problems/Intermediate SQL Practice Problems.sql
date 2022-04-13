@@ -1,4 +1,4 @@
-/*20. For this problem, we’d like to see the total number of
+/*20. For this problem, weâ€™d like to see the total number of
 products in each category. Sort the results by the total
 number of products, in descending order.*/
 SELECT C.CategoryName, COUNT(P.CategoryID) AS NumberProducts 
@@ -22,10 +22,10 @@ SELECT ProductID, ProductName, UnitsInStock, ReorderLevel
 	FROM Products WHERE UnitsInStock < ReorderLevel
 	ORDER BY ProductID;
 
-/*23. Now we need to incorporate these fields—
+/*23. Now we need to incorporate these fieldsâ€”
 UnitsInStock, UnitsOnOrder, ReorderLevel,
-Discontinued—into our calculation. We’ll define
-“products that need reordering” with the following:
+Discontinuedâ€”into our calculation. Weâ€™ll define
+â€œproducts that need reorderingâ€ with the following:
 UnitsInStock plus UnitsOnOrder are less than
 or equal to ReorderLevel
 The Discontinued flag is false (0).*/
@@ -40,7 +40,7 @@ all customers, sorted by region, alphabetically.
 
 However, he wants the customers with no region
 (null in the Region field) to be at the end, instead of
-at the top, where you’d normally find the null values.
+at the top, where youâ€™d normally find the null values.
 Within the same region, companies should be sorted
 by CustomerID.*/
 SELECT CustomerID, CompanyName, Region,
