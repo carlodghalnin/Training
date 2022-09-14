@@ -76,7 +76,8 @@ SELECT * FROM levels;
 
 /*----------------------------------------------------
 #3 Fiscal Year Table Constraints
-
+Determine constraints for correct tracking of each
+employee's pay rate, assuming no mid-year pay raises.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #EmployeePayRecords;
@@ -84,17 +85,18 @@ GO
 
 CREATE TABLE #EmployeePayRecords
 (
-EmployeeID  INTEGER,
-FiscalYear  INTEGER,
-StartDate   DATE,
-EndDate     DATE,
-PayRate     MONEY
+EmployeeID  INTEGER NOT NULL,
+FiscalYear  INTEGER NOT NULL,
+StartDate   DATE NOT NULL,
+EndDate     DATE NOT NULL,
+PayRate     MONEY NOT NULL
 );
 GO
 
 /*----------------------------------------------------
-DDL for Puzzle #4
-Two Predicates
+#4 Two Predicates
+For every customer with a California delivery, provide
+their Texas orders.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #Orders;
@@ -116,9 +118,17 @@ INSERT INTO #Orders VALUES
 (3003,'Ord387654','CA',830),(4004,'Ord476126','TX',120);
 GO
 
+--Puzzle 4 solution
+SELECT * FROM #Orders 
+WHERE DeliveryState = 'TX' AND CustomerID IN
+(SELECT CustomerID FROM #Orders WHERE DeliveryState = 'CA'
+INTERSECT
+SELECT CustomerID FROM #Orders WHERE DeliveryState = 'TX');
+
 /*----------------------------------------------------
-DDL for Puzzle #5
-Phone Directory
+#5 Phone Directory
+Transform the table so that CustomerIDs are unique
+rows with the associated Type columns filled out.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #PhoneDirectory;
@@ -142,9 +152,24 @@ INSERT INTO #PhoneDirectory VALUES
 (3003,'Cellular','555-987-6541');
 GO
 
+--Puzzle 5 solution
+SELECT CustomerID, [Cellular], [Work], [Home]  
+FROM  
+(
+  SELECT CustomerID, [Type], PhoneNumber   
+  FROM #PhoneDirectory
+) AS SourceTable  
+PIVOT  
+(  
+  MAX(PhoneNumber)  
+  FOR Type IN ([Cellular], [Work], [Home])  
+) AS PivotTable;
+
 /*----------------------------------------------------
-DDL for Puzzle #6
-Workflow Steps
+#6 Workflow Steps
+Output all workflows that have started but not
+completed. For bonus points, write only using COUNT
+with no subqueries.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #WorkflowSteps;
@@ -165,9 +190,15 @@ INSERT INTO #WorkflowSteps VALUES
 ('Charlie',1,NULL),('Charlie',2,'7/1/2018');
 GO
 
+--Puzzle 6 solution
+SELECT Workflow AS 'Incomplete Workflows'
+FROM #WorkflowSteps
+GROUP BY Workflow 
+HAVING COUNT(StepNumber) > COUNT(CompletionDate);
+
 /*----------------------------------------------------
-DDL for Puzzle #7
-Mission to Mars
+#7 Mission to Mars
+Output the candidate that meets all the requirements.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #Candidates;
@@ -198,9 +229,14 @@ INSERT INTO #Requirements VALUES
 ('Geologist'),('Astrogator'),('Technician');
 GO
 
+--Puzzle 7 solution
+SELECT DISTINCT(CandidateID) FROM #Candidates 
+FULL JOIN #Requirements ON Occupation = Requirement
+WHERE Requirement IS NOT NULL;
+
 /*----------------------------------------------------
-DDL for Puzzle #8
-Workflow Cases
+#8 Workflow Cases
+Collapse workflow case passes into a singular column.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #WorkflowCases;
@@ -218,6 +254,16 @@ GO
 INSERT INTO #WorkflowCases VALUES
 ('Alpha',0,0,0),('Bravo',0,1,1),('Charlie',1,0,0),('Delta',0,0,0);
 GO
+
+--Puzzle 8 solution
+SELECT Workflow, SUM(Passes) as Passed  
+FROM   
+   (SELECT Workflow, Case1, Case2, Case3 
+   FROM #WorkflowCases) W  
+UNPIVOT  
+   (Passes FOR Workflows IN   
+      (Case1, Case2, Case3)  
+)AS PassTable GROUP BY Workflow;  
 
 /*----------------------------------------------------
 DDL for Puzzle #9
