@@ -266,8 +266,8 @@ UNPIVOT
 )AS PassTable GROUP BY Workflow;  
 
 /*----------------------------------------------------
-DDL for Puzzle #9
-Matching Sets
+#9 Matching Sets
+Output employees that match the licenses they carry.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #Employees;
@@ -291,10 +291,26 @@ INSERT INTO #Employees VALUES
 (3003,'Class A'),
 (3003,'Class D');
 GO
+--Puzzle 9 solution
+SELECT EmployeeID, COUNT(License) AS Licenses
+FROM #Employees GROUP BY EmployeeID;
+
+WITH Pairs(Employee, Matches) AS
+	(SELECT A.EmployeeID, COUNT(A.License)
+	FROM #Employees A, #Employees B
+	WHERE A.EmployeeID <> B.EmployeeID
+	AND A.License = B.License
+	GROUP BY A.EmployeeID, B.EmployeeID),
+Employees(EmployeeID, Licenses) AS
+	(SELECT EmployeeID, COUNT(License) AS Licenses
+	FROM #Employees GROUP BY EmployeeID)
+SELECT Employee FROM Pairs, Employees
+	WHERE Employee = EmployeeID AND Matches = Licenses 
+	ORDER BY Employee;
 
 /*----------------------------------------------------
-DDL for Puzzle #10
-Mean, Median, Mode and Range
+#10 Mean, Median, Mode and Range
+Output all 4 for the given set of integers.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #SampleData;
@@ -309,6 +325,15 @@ GO
 INSERT INTO #SampleData VALUES
 (5),(6),(10),(10),(13),(14),(17),(20),(81),(90),(76);
 GO
+
+--Puzzle 10 solution
+SELECT AVG(IntegerValue) AS Mean, 
+MAX(IntegerValue) - MIN(IntegerValue) AS Range
+FROM #SampleData;
+	
+SELECT PERCENTILE_DISC(0.5) WITHIN GROUP 
+	(ORDER BY IntegerValue) OVER () AS Median
+FROM #SampleData;
 
 /*----------------------------------------------------
 DDL for Puzzle #11
