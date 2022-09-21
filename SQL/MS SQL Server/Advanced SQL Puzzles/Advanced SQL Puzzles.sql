@@ -327,16 +327,23 @@ INSERT INTO #SampleData VALUES
 GO
 
 --Puzzle 10 solution
-SELECT AVG(IntegerValue) AS Mean, 
-MAX(IntegerValue) - MIN(IntegerValue) AS Range
-FROM #SampleData;
-	
-SELECT PERCENTILE_DISC(0.5) WITHIN GROUP 
+WITH Stats2(Median) AS 
+	(SELECT TOP 1 PERCENTILE_DISC(0.5) WITHIN GROUP 
 	(ORDER BY IntegerValue) OVER () AS Median
-FROM #SampleData;
+	FROM #SampleData),
+	Stats3(Mode) AS
+	(SELECT TOP 1 IntegerValue AS Mode FROM #SampleData
+	GROUP BY IntegerValue 
+	ORDER BY COUNT(IntegerValue) DESC)
+SELECT AVG(IntegerValue) AS Mean, 
+	MAX(Median) AS Median, MAX(Mode) AS Mode,
+	MAX(IntegerValue) - MIN(IntegerValue) AS Range
+	FROM #SampleData, Stats2, Stats3;
 
 /*----------------------------------------------------
-DDL for Puzzle #11
+Puzzle #11
+Output all possible permutations as comma-separated
+values.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #TestCases;
@@ -353,6 +360,16 @@ GO
 INSERT INTO #TestCases VALUES
 (1,'A'),(2,'B'),(3,'C');
 GO
+
+--Puzzle 11 solution
+WITH Test(A, B, C) AS
+	(SELECT A.TestCase, B.TestCase, C.TestCase 
+	FROM #TestCases A, #TestCases B, #TestCases C
+	WHERE A.TestCase <> B.TestCase 
+	AND B.TestCase <> C.TestCase
+	AND A.TestCase <> C.TestCase)
+SELECT	ROW_NUMBER() OVER (ORDER BY A) AS 'Row Number',
+	CONCAT(A, ', ', B, ', ', C) AS Output FROM Test;
 
 /*----------------------------------------------------
 DDL for Puzzle #12
