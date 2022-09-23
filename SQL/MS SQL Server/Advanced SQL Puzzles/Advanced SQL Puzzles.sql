@@ -341,9 +341,8 @@ SELECT AVG(IntegerValue) AS Mean,
 	FROM #SampleData, Stats2, Stats3;
 
 /*----------------------------------------------------
-Puzzle #11
-Output all possible permutations as comma-separated
-values.
+#11 Output all possible permutations as 
+comma-separated values.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #TestCases;
@@ -372,8 +371,9 @@ SELECT	ROW_NUMBER() OVER (ORDER BY A) AS 'Row Number',
 	CONCAT(A, ', ', B, ', ', C) AS Output FROM Test;
 
 /*----------------------------------------------------
-DDL for Puzzle #12
-Average Days
+#12 Average Days
+Output average days between executions for each
+workflow.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #ProcessLog;
@@ -393,9 +393,21 @@ INSERT INTO #ProcessLog VALUES
 ('Charlie','6/1/2018'),('Charlie','6/15/2018'),('Charlie','6/30/2018');
 GO
 
+--Puzzle 12 solution
+WITH Past(Flow, Present, Previous) AS
+	(SELECT WorkFlow, ExecutionDate, 
+	LAG(ExecutionDate, 1) OVER (PARTITION BY WorkFlow 
+	ORDER BY WorkFlow) FROM #ProcessLog),
+	Interval(WorkFlow, Interval) AS
+	(SELECT WorkFlow, DATEDIFF(DAY, Previous, ExecutionDate)
+	FROM Past, #ProcessLog
+	WHERE Flow = WorkFlow AND Present = ExecutionDate)
+SELECT WorkFlow, AVG(Interval) AS 'Average Days'
+	FROM Interval GROUP BY WorkFlow;
+
 /*----------------------------------------------------
-DDL for Puzzle #13
-Inventory Tracking
+#13 Inventory Tracking
+Output running balance of inventory.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #Inventory;
@@ -413,10 +425,19 @@ INSERT INTO #Inventory VALUES
 ('7/4/2018',50),('7/5/2018',-75);
 GO
 
+--Puzzle 13 solution
+SELECT InventoryDate, QuantityAdjustment,
+SUM(QuantityAdjustment) OVER (ORDER BY InventoryDate) 
+AS Inventory
+FROM #Inventory;
 
 /*----------------------------------------------------
-DDL for Puzzle #14
-Indeterminate Process Log
+#14 Indeterminate Process Log
+Output status as:
+-Complete: if all steps Complete
+-Error: if all steps Error
+-Indeterminate: combination of Error and Complete/Running
+-Running: combination of Complete and Running
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #ProcessLog;
@@ -436,6 +457,9 @@ INSERT INTO #ProcessLog VALUES
 ('Charlie',1,'Complete'),('Charlie',2,'Error'),('Delta',1,'Complete'),('Delta',2,'Running'),
 ('Echo',1,'Running'),('Echo',2,'Error'),('Foxtrot',1,'Error'),('Foxtrot',2,'Error');
 GO
+
+--Puzzle 14 solution
+SELECT NULL FROM #ProcessLog;
 
 /*----------------------------------------------------
 DDL for Puzzle #15
