@@ -459,11 +459,30 @@ INSERT INTO #ProcessLog VALUES
 GO
 
 --Puzzle 14 solution
-SELECT NULL FROM #ProcessLog;
+SELECT * FROM #ProcessLog;
+
+WITH Types(Workflow, E, R, C) AS
+	(SELECT Workflow, [Error], [Running], [Complete]  
+	FROM  
+	(
+	SELECT Workflow, [Status]   
+	FROM #ProcessLog
+	) AS SourceTable  
+	PIVOT  
+	(  
+	MAX([Status])  
+	FOR [Status] IN ([Error], [Running], [Complete])  
+	) AS PivotTable)
+SELECT Workflow, (CASE 
+	WHEN E IS NULL AND R IS NULL THEN 'Complete' 
+	WHEN E IS NULL AND R IS NOT NULL THEN 'Running'
+	WHEN E IS NOT NULL AND R IS NULL AND C IS NULL  
+		THEN 'Error'
+	ELSE 'Indeterminate' END) AS Status FROM Types;
 
 /*----------------------------------------------------
-DDL for Puzzle #15
-Group Concatenation
+#15 Group Concatenation
+Output the concatenation of all the strings.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #DMLTable;
@@ -488,9 +507,12 @@ INSERT INTO #DMLTable VALUES
 (8,'UnitPrice');
 GO
 
+--Puzzle 15 solution
+SELECT STRING_AGG(String, ' ') AS 'Syntax' FROM #DMLTable;
+
 /*----------------------------------------------------
-DDL for Puzzle #16
-Reciprocals
+#16 Reciprocals
+Output reciprocals and their aggregate scores.
 */----------------------------------------------------
 
 DROP TABLE IF EXISTS #PlayerScores;
@@ -509,6 +531,9 @@ INSERT INTO #PlayerScores VALUES
 (1001,2002,150),(3003,4004,15),
 (4004,3003,125),(4004,1001,125);
 GO
+
+--Puzzle 16 solution
+SELECT * FROM #PlayerScores;
 
 /*----------------------------------------------------
 DDL for Puzzle #17
